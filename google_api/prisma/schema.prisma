@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String         @id @default(uuid())
+  username            String         @unique
+  email               String         @unique
+  role                String         @default("user")
+  image               String?
+  max_allocated_space String         @default("10 GB")
+  keys                String[]
+  hasApiAccess        Boolean        @default(false)
+  canMakeMultipleApis Boolean        @default(false)
+  createdTime         String?
+  name                String?
+  posts               Post[]
+  apiKeys             Api_key[]
+  drives              Drive[]
+  userAnalytics       UserAnalytics?
+  Requests            Request[]
+  grantedRequests     Request[]      @relation("RequestGranter")
+}
+
+model Key {
+  serviceId String @id @unique
+  encrypted String
+  iv        String
+  authTag   String
+}
+
+model Post {
+  id                 String   @unique
+  driveId            String?
+  mimeType           String
+  size               BigInt?
+  userId             String?
+  name               String?
+  accessKey          String?
+  parents            String[]
+  thumbnailLink      String?
+  webViewLink        String?
+  webContentLink     String?
+  folderColorRgb     String?
+  videoMediaMetadata Json?
+  imageMediaMetadata Json?
+  viewedByMeTime     String?
+  sharedWithMeTime   String?
+  modifiedTime       String?
+  description        String?
+  fullFileExtension  String?
+  user               User?    @relation(fields: [userId], references: [username])
+}
+
+model Api_key {
+  id         String     @id @default(uuid())
+  accessKey  String     @unique
+  userId     String
+  limit      BigInt     @default(10737418240)
+  name       String?
+  totalUsage BigInt     @default(0)
+  projectId  String // Added projectId
+  drives     DriveKey[]
+  user       User       @relation(fields: [userId], references: [username])
+
+  @@index([projectId]) // Create an index on projectId for faster queries
+}
+
+model Request {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   @unique
+  status    String   @default("pending")
+  details   Json?
+  grantedBy String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [username])
+  granter   User?    @relation("RequestGranter", fields: [grantedBy], references: [username])
+}
+
+model Drive {
+  id                String     @id @default(uuid())
+  serviceId         String     @unique
+  limit             BigInt?
+  usage             BigInt?
+  usageInDriveTrash BigInt?
+  usageInDrive      BigInt?
+  alloted           Boolean    @default(false)
+  DriveKey          DriveKey[]
+  User              User[]
+  updatedAt         DateTime   @updatedAt
+}
+
+model DriveKey {
+  id             String    @id @default(uuid())
+  allocatedSpace BigInt
+  usage          BigInt    @default(0)
+  Api_key        Api_key[]
+  driveId        String    @map("driveId")
+  drive          Drive     @relation(fields: [driveId], references: [serviceId])
+}
+
+model UserAnalytics {
+  userId                     String               @id @unique
+  lastLoginTime              String?
+  totalStorageUsed           BigInt               @default(0)
+  totalApiUsage              BigInt               @default(0)
+  totalFilesUploaded         BigInt               @default(0)
+  totalDrivesUsed            BigInt               @default(0)
+  lastActivityTime           String?
+  totalRequestsMade          BigInt               @default(0)
+  totalFilesShared           BigInt               @default(0)
+  totalDriveAccessRequests   BigInt               @default(0)
+  totalFilesDeleted          BigInt               @default(0)
+  totalApiKeysUsed           BigInt               @default(0)
+  storageQuotaLimit          BigInt               @default(0)
+  storageQuotaRemaining      BigInt               @default(0)
+  createdAt                  DateTime             @default(now())
+  updatedAt                  String?
+  userType                   String               @default("regular")
+  isActive                   Boolean              @default(true)
+  lastPasswordChangeTime     String?
+  twoFactorEnabled           Boolean              @default(false)
+  totalLoginAttempts         BigInt               @default(0)
+  failedLoginAttempts        BigInt               @default(0)
+  lastFailedLoginTime        String?
+  averageSessionDuration     BigInt               @default(0)
+  totalTimeSpentOnline       BigInt               @default(0)
+  totalMessagesSent          BigInt               @default(0)
+  totalNotificationsReceived BigInt               @default(0)
+  totalNotificationsRead     BigInt               @default(0)
+  userRegion                 String?
+  profileCompleteness        BigInt               @default(0)
+  lastProfileUpdateTime      String?
+  totalFilesEdited           BigInt               @default(0)
+  totalFileSharesReceived    BigInt               @default(0)
+  userPlanType               String               @default("basic")
+  totalApiRequestsMade       BigInt               @default(0)
+  dataExported               Boolean              @default(false)
+  dataImported               Boolean              @default(false)
+  totalSharedFolders         BigInt               @default(0)
+  totalFolderCreated         BigInt               @default(0)
+  user                       User                 @relation(fields: [userId], references: [username])
+  recentActivities           RecentActivity[]
+  requestStatuses            RequestStatus[]
+  userDeviceInfos            UserDeviceInfo[]
+  contentInteractions        ContentInteraction[]
+  userFeedbacks              UserFeedback[]
+}
+
+model RecentActivity {
+  id              String        @id @default(uuid())
+  activityType    String
+  activityTime    String
+  userAnalyticsId String
+  userAnalytics   UserAnalytics @relation(fields: [userAnalyticsId], references: [userId])
+}
+
+model RequestStatus {
+  id              String        @id @default(uuid())
+  status          String
+  requestId       String
+  userAnalyticsId String
+  userAnalytics   UserAnalytics @relation(fields: [userAnalyticsId], references: [userId])
+}
+
+model UserDeviceInfo {
+  id              String        @id @default(uuid())
+  deviceType      String
+  deviceOS        String
+  userAnalyticsId String
+  userAnalytics   UserAnalytics @relation(fields: [userAnalyticsId], references: [userId])
+}
+
+model ContentInteraction {
+  id              String        @id @default(uuid())
+  contentId       String
+  interactionType String
+  interactionTime String
+  userAnalyticsId String
+  userAnalytics   UserAnalytics @relation(fields: [userAnalyticsId], references: [userId])
+}
+
+model UserFeedback {
+  id              String        @id @default(uuid())
+  feedbackText    String
+  feedbackTime    String
+  userAnalyticsId String
+  userAnalytics   UserAnalytics @relation(fields: [userAnalyticsId], references: [userId])
+}
