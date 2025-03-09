@@ -82,7 +82,7 @@ export default function WelcomePage() {
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
             {/* Animated background elements */}
-            <AnimatedBackground />
+            {/* <AnimatedBackground /> */}
 
             {/* Animated frame border overlay */}
             <motion.div
