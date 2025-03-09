@@ -1,3 +1,4 @@
+'use client'
 import { ErrorBtn } from "@/utils/Interfaces";
 import { useState } from "react";
 import { toast } from "sonner";

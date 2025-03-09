@@ -2,7 +2,8 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { User } from '@/utils/Interfaces';
-
+import { getData } from '@/utils/fetch-from-api';
+export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
     title: 'Admin Panel - Cloud Base Cloud Storage Management',
     description: `Manage and monitor your Cloud Base storage system with ease. The Cloud Base Admin Panel provides powerful tools for secure file management, user access control, data backups, and scalable storage solutions.`,
@@ -37,8 +38,6 @@ export default async function Layout({
 }: {
     children: React.ReactNode;
 }) {
-    // Dynamically import the utilities only when needed
-    const { getData } = await import('@/utils/fetch-from-api');
 
     // Fetch the current session on the server side
     const { data: session } = await getData<{ data: User }>('api/user/profile') as { data: any };

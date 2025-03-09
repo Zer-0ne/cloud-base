@@ -1,3 +1,4 @@
+'use client'
 import { motion, useSpring, useMotionTemplate } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -125,7 +126,8 @@ const complexPatterns = [
 
 export function AnimatedBackground() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
+  const [isMounted, setIsMounted] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
   const smoothX = useSpring(0, { stiffness: 20, damping: 40 });
   const smoothY = useSpring(0, { stiffness: 20, damping: 40 });
 
@@ -148,40 +150,62 @@ export function AnimatedBackground() {
   const color3 = useMotionTemplate`rgba(${r3}, ${g3}, ${b3}, 0.2)`;
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      requestAnimationFrame(() => {
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-        smoothX.set(x);
-        smoothY.set(y);
-        setMousePosition({ x, y });
+
+    setIsMounted(true);
+
+    if (typeof window !== 'undefined') {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
       });
-    };
+      const handleResize = () => {
+        setDimensions({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      };
 
-    // Animate colors
-    const colorAnimation = setInterval(() => {
-      // Color 1 animation
-      r1.set(Math.random() * 128 + 64);
-      g1.set(Math.random() * 128 + 64);
-      b1.set(Math.random() * 128 + 128);
+      const handleMouseMove = (e: MouseEvent) => {
+        requestAnimationFrame(() => {
+          const x = e.clientX / window.innerWidth;
+          const y = e.clientY / window.innerHeight;
+          smoothX.set(x);
+          smoothY.set(y);
+          setMousePosition({ x, y });
+        });
+      };
 
-      // Color 2 animation
-      r2.set(Math.random() * 128 + 64);
-      g2.set(Math.random() * 128 + 64);
-      b2.set(Math.random() * 128 + 128);
+      // Animate colors
+      const colorAnimation = setInterval(() => {
+        // Color 1 animation
+        r1.set(Math.random() * 128 + 64);
+        g1.set(Math.random() * 128 + 64);
+        b1.set(Math.random() * 128 + 128);
 
-      // Color 3 animation
-      r3.set(Math.random() * 128 + 64);
-      g3.set(Math.random() * 128 + 64);
-      b3.set(Math.random() * 128 + 128);
-    }, 4000);
+        // Color 2 animation
+        r2.set(Math.random() * 128 + 64);
+        g2.set(Math.random() * 128 + 64);
+        b2.set(Math.random() * 128 + 128);
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      clearInterval(colorAnimation);
-    };
+        // Color 3 animation
+        r3.set(Math.random() * 128 + 64);
+        g3.set(Math.random() * 128 + 64);
+        b3.set(Math.random() * 128 + 128);
+      }, 4000);
+
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("resize", handleResize);
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        clearInterval(colorAnimation);
+      };
+    }
   }, []);
+
+  // Don't render anything on server side
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-black">

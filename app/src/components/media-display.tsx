@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { MoreVertical, Star, Trash, Share, Download, ExternalLink } from "lucide-react";

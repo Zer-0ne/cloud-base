@@ -50,9 +50,9 @@ const ApiManagement = () => {
         }
     }, [tokenData]);
 
-    const { execute: alloteStorage, loading: isAllocating } = useApiRequest(
-        (params: { key: string, space: string }) =>
-            createData('api/admin/allocate-storage', params)
+    const { execute: alloteStorage, loading: isAllocating } = useApiRequest<any, { key: string, space: string } | undefined>(
+        (params: { key: string, space: string } | undefined) =>
+            createData('api/admin/allocate-storage', params!)
     );
 
     const { execute: generateApiKey, data: generateTokenData } = useApiRequest(

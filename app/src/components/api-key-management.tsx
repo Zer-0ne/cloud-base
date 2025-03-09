@@ -22,7 +22,7 @@ export function ApiKeyManagement() {
 
   const isDesktop = useMediaQuery("(min-width: 768px)"); // ✅ Check if it's a desktop
 
-  const { execute: generateApiKey, data: generateTokenData } = useApiRequest(
+  const { execute: generateApiKey, data: generateTokenData } = useApiRequest<any>(
     () => createData('api/user/api-creation', { name: customName })
   );
 
